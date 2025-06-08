@@ -9,7 +9,7 @@ service.LoadMovies();
 //     Console.WriteLine($"{movie.Title}: {string.Join(", ", movie.Cast.Select(a => a.Name))}");
 // }
 
-List<IPathItem>? shortestPath = service.FindShortestPath("Javier Bardem", "Tom Cruise");
+IEnumerable<IPathItem>? shortestPath = service.FindShortestPath("Javier Bardem", "Tom Cruise");
 
 Console.WriteLine(
     shortestPath is null
