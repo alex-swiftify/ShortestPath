@@ -30,13 +30,14 @@ public class MovieService
         foreach (var movie in _movies)
         foreach (var actor in movie.Cast)
             actor.Movies.Add(movie);
-            
+        
         _actors = _movies
             .SelectMany(m => m.Cast)
+            .DistinctBy(c => c.Name)
             .ToList();
     }
     
-    public List<IPathItem> FindShortestPath(string fromActor, string toActor)
+    public List<IPathItem>? FindShortestPath(string fromActor, string toActor)
     {
         IPathItem? from = _actors.FirstOrDefault(a => a.Name == fromActor);
         IPathItem? to = _actors.FirstOrDefault(a => a.Name == toActor);
@@ -47,32 +48,29 @@ public class MovieService
         return FindShortestPath(from, to, []);
     }
     
-    private List<IPathItem> FindShortestPath(IPathItem from, IPathItem to, List<IPathItem> visited)
+    private List<IPathItem>? FindShortestPath(IPathItem from, IPathItem to, List<IPathItem> visited)
     {
         if (from == to)
             return [to];
-            
+        
         if (from.Connections.Contains(to))
             return [from, to];
-
-        List<IPathItem> shortestSubPath = [];
-
+        
+        List<IPathItem>? shortestSubPath = null;
+        
         foreach (IPathItem connection in from.Connections.Except(visited))
         {
-            List<IPathItem> subPath = FindShortestPath(connection, to, visited.Append(from).ToList());
+            List<IPathItem>? subPath = FindShortestPath(connection, to, visited.Append(from).ToList());
             
-            if (subPath.Any() &&
-                (!shortestSubPath.Any() || subPath.Count < shortestSubPath.Count))
+            if ((subPath?.Count ?? int.MaxValue) < (shortestSubPath?.Count ?? 0))
             {
                 shortestSubPath = subPath;
             }
         }
         
-        if (!shortestSubPath.Any())
-            return [];
+        if (shortestSubPath == null)
+            return null;
         
-        var shortestPath = visited;
-        shortestPath.AddRange(shortestSubPath);
-        return shortestPath;
+        return visited.Concat(shortestSubPath).ToList();
     }
 }
