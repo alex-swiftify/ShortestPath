@@ -1,4 +1,5 @@
-﻿using ShortestPath.BusinessLogic.Services;
+﻿using ShortestPath.BusinessLogic.Entities.Interfaces;
+using ShortestPath.BusinessLogic.Services;
 
 var service = new MovieService();
 service.LoadMovies();
@@ -8,6 +9,6 @@ service.LoadMovies();
 //     Console.WriteLine($"{movie.Title}: {string.Join(", ", movie.Cast.Select(a => a.Name))}");
 // }
 
-List<string> shortestPath = service.FindShortestPath("Javier Bardem", "Tom Cruise");
+List<IPathItem> shortestPath = service.FindShortestPath("Javier Bardem", "Tom Cruise");
 
-Console.WriteLine($"Shortest path: {string.Join(" => ", shortestPath)}");
+Console.WriteLine($"Shortest path: {string.Join(" => ", shortestPath.Select(item => item.DisplayName))}");

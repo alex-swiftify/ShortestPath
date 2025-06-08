@@ -10,7 +10,7 @@ public class Actor(string name) : IPathItem
     public string Name { get; } = name;
 
     [JsonIgnore]
-    public List<Movie> Movies { get; }
+    public List<Movie> Movies { get; set; } = [];
 
     [JsonIgnore]
     public string DisplayName => Name;

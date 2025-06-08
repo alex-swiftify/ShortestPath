@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace ShortestPath.BusinessLogic.Entities.Interfaces;
 
 public interface IPathItem
