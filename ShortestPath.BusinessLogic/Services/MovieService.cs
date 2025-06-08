@@ -6,41 +6,49 @@ namespace ShortestPath.BusinessLogic.Services;
 
 public class MovieService
 {
-    private List<Movie> _movies = [];
-    private List<Actor> _actors = [];
+    private Dictionary<string, Movie> _movies = [];
+    private Dictionary<string, Actor> _actors = [];
 
     public void LoadMovies()
     {
         string jsonFilePath = Path.Combine(AppContext.BaseDirectory, "Resources", "movies.json");
         string json = File.ReadAllText(jsonFilePath);
         
-        var options = new JsonSerializerOptions
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+
+        var moviesElement = root.GetProperty("movies");
+        
+        foreach (var movieElement in moviesElement.EnumerateArray())
         {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
+            string movieTitle = movieElement.GetProperty("title").GetString() ?? string.Empty;
+            
+            List<string> cast = movieElement.GetProperty("cast").EnumerateArray()
+                .Select(actorElement => actorElement.GetString() ?? string.Empty)
+                .ToList();
 
-        var moviesData = JsonSerializer.Deserialize<MoviesData>(json, options);
-        
-        if (moviesData == null)
-            throw new InvalidOperationException("Deserialization resulted in null movies data.");
-        
-        _movies = moviesData.Movies;
+            foreach (string actorName in cast)
+            {
+                if (!_actors.ContainsKey(actorName))
+                    _actors[actorName] = new Actor(actorName);
+            }
+            
+            _movies[movieTitle] = new Movie(movieTitle)
+            {
+                Cast = cast.Select(name => _actors[name]).ToList()
+            };
+        }
 
-        // Initialize backward references from Actor to Movies
-        foreach (var movie in _movies)
-        foreach (var actor in movie.Cast)
-            actor.Movies.Add(movie);
-        
-        _actors = _movies
-            .SelectMany(m => m.Cast)
-            .DistinctBy(c => c.Name)
-            .ToList();
+        foreach (Actor actor in _actors.Values)
+        {
+            actor.Movies = _movies.Values.Where(m => m.Cast.Contains(actor)).ToList();
+        }
     }
     
     public List<IPathItem>? FindShortestPath(string fromActor, string toActor)
     {
-        IPathItem? from = _actors.FirstOrDefault(a => a.Name == fromActor);
-        IPathItem? to = _actors.FirstOrDefault(a => a.Name == toActor);
+        _actors.TryGetValue(fromActor, out Actor? from);
+        _actors.TryGetValue(toActor, out Actor? to);
         
         if (from is null || to is null)
             throw new InvalidOperationException("Cannot find actors with given names.");
@@ -51,26 +59,20 @@ public class MovieService
     private List<IPathItem>? FindShortestPath(IPathItem from, IPathItem to, List<IPathItem> visited)
     {
         if (from == to)
-            return [to];
+            return visited.Append(to).ToList();
         
-        if (from.Connections.Contains(to))
-            return [from, to];
-        
-        List<IPathItem>? shortestSubPath = null;
+        List<IPathItem>? shortestPath = null;
         
         foreach (IPathItem connection in from.Connections.Except(visited))
         {
-            List<IPathItem>? subPath = FindShortestPath(connection, to, visited.Append(from).ToList());
+            List<IPathItem>? path = FindShortestPath(connection, to, visited.Append(from).ToList());
             
-            if ((subPath?.Count ?? int.MaxValue) < (shortestSubPath?.Count ?? 0))
+            if ((path?.Count ?? int.MaxValue) < (shortestPath?.Count ?? int.MaxValue))
             {
-                shortestSubPath = subPath;
+                shortestPath = path;
             }
         }
         
-        if (shortestSubPath == null)
-            return null;
-        
-        return visited.Concat(shortestSubPath).ToList();
+        return shortestPath;
     }
 }
