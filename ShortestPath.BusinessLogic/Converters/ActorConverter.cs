@@ -11,7 +11,10 @@ public class ActorConverter : JsonConverter<Actor>
     {
         if (reader.TokenType == JsonTokenType.String)
         {
-            return new Actor { Name = reader.GetString()! };
+            string? token = reader.GetString();
+            
+            if (!string.IsNullOrWhiteSpace(token))
+                return new Actor(reader.GetString()!);
         }
         throw new JsonException("Expected string for actor name.");
     }

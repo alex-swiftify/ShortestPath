@@ -1,6 +1,6 @@
 namespace ShortestPath.BusinessLogic.Entities;
 
-public class MoviesData
+public class MoviesData(List<Movie> movies)
 {
-    public List<Movie> Movies { get; set; }
+    public List<Movie> Movies { get; init; } = movies;
 }

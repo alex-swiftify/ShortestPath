@@ -5,13 +5,16 @@ using ShortestPath.BusinessLogic.Entities.Interfaces;
 namespace ShortestPath.BusinessLogic.Entities;
 
 [JsonConverter(typeof(ActorConverter))]
-public class Actor: IPathItem
+public class Actor(string name) : IPathItem
 {
-    public string Name { get; set; }
+    public string Name { get; } = name;
+
+    [JsonIgnore]
+    public List<Movie> Movies { get; }
+
+    [JsonIgnore]
+    public string DisplayName => Name;
     
     [JsonIgnore]
-    public List<Movie> Movies { get; set; }
-
-    public string DisplayName => Name;
     public List<IPathItem> Connections => [..Movies];
 }
