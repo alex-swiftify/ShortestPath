@@ -9,6 +9,4 @@ public class Movie(string title) : IPathItem
 
     public string DisplayName => Title;
     public List<IPathItem> Connections => [..Cast];
-
-    public override string ToString() => DisplayName;
 }

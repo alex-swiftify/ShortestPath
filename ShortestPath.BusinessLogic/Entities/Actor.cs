@@ -9,6 +9,4 @@ public class Actor(string name) : IPathItem
 
     public string DisplayName => Name;
     public List<IPathItem> Connections => [..Movies];
-
-    public override string ToString() => DisplayName;
 }
