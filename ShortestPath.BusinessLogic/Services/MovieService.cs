@@ -23,9 +23,8 @@ public class MovieService
         {
             string movieTitle = movieElement.GetProperty("title").GetString() ?? string.Empty;
             
-            List<string> cast = movieElement.GetProperty("cast").EnumerateArray()
-                .Select(actorElement => actorElement.GetString() ?? string.Empty)
-                .ToList();
+            IEnumerable<string> cast = movieElement.GetProperty("cast").EnumerateArray()
+                .Select(actorElement => actorElement.GetString() ?? string.Empty);
 
             foreach (string actorName in cast)
             {
