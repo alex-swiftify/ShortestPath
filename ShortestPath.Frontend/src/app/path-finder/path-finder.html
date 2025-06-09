@@ -1,8 +1,10 @@
-<select [(ngModel)]="selectedActor">
-  <option *ngFor="let actor of actors" [value]="actor">{{ actor }}</option>
-</select>
+<div style="margin-bottom: 10px;">
+  <select [(ngModel)]="selectedActor" style="width: 180px;">
+    <option *ngFor="let actor of actors" [value]="actor">{{ actor }}</option>
+  </select>
+</div>
 
-<button (click)="findPath()">Find Path to Tom Cruise</button>
+<button (click)="findPath()" style="width: 180px;">Find Path to Tom Cruise</button>
 
 <p *ngIf="path.length > 0">
   {{ path.join(' => ') }}
