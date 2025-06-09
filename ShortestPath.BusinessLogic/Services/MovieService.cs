@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+using System.Text.Json;
 using ShortestPath.BusinessLogic.Models.Dtos;
 using ShortestPath.BusinessLogic.Models.Entities;
 
@@ -14,10 +14,17 @@ public class MovieService
         string jsonFilePath = Path.Combine(AppContext.BaseDirectory, "Resources", "movies.json");
         string json = File.ReadAllText(jsonFilePath);
         
-        MoviesData moviesData = JsonConvert.DeserializeObject<MoviesData>(json) 
-            ?? throw new InvalidOperationException("Failed to deserialize movies data.");
+        var options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
 
-        foreach (var movieData in moviesData.Movies)
+        var moviesData = JsonSerializer.Deserialize<MoviesData>(json, options);
+        
+        if (moviesData == null)
+            throw new InvalidOperationException("Deserialization resulted in null movies data.");
+        
+        foreach (MovieData movieData in moviesData.Movies)
         {
             foreach (string actorName in movieData.Cast)
             {
