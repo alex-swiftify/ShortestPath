@@ -22,8 +22,8 @@ public class MovieService
         {
             foreach (string actorName in movieData.Cast)
             {
-                if (!_actors.ContainsKey(actorName))
-                    _actors[actorName] = new Actor(actorName);
+                // Create distinct Actors objects, one for each unique name
+                _actors.TryAdd(actorName, new Actor(actorName));
             }
 
             _movies[movieData.Title] = new Movie(movieData.Title)
