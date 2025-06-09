@@ -48,6 +48,8 @@ public class MovieService
         }
     }
     
+    public IEnumerable<string> GetActors() => _actors.Keys;
+
     public IEnumerable<IPathItem>? FindShortestPath(string fromActor, string toActor)
     {
         _actors.TryGetValue(fromActor, out Actor? from);
