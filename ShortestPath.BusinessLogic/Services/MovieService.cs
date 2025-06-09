@@ -1,12 +1,13 @@
 using System.Text.Json;
-using ShortestPath.BusinessLogic.Entities;
+using ShortestPath.BusinessLogic.Models.Dtos;
+using ShortestPath.BusinessLogic.Models.Entities;
 
 namespace ShortestPath.BusinessLogic.Services;
 
 public class MovieService
 {
-    private List<Movie> _movies = [];
-    private List<Actor> _actors = [];
+    private Dictionary<string, Movie> _movies = [];
+    private Dictionary<string, Actor> _actors = [];
 
     public void LoadMovies()
     {
@@ -18,76 +19,69 @@ public class MovieService
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
-        MoviesData? moviesData = JsonSerializer.Deserialize<MoviesData>(json, options);
+        var moviesData = JsonSerializer.Deserialize<MoviesData>(json, options);
         
         if (moviesData == null)
             throw new InvalidOperationException("Deserialization resulted in null movies data.");
         
-        _movies = moviesData.Movies;
-        
-        _actors = _movies
-            .SelectMany(m => m.Cast)
-            .Select(c => new Actor { Name = c, Movies = _movies.Where(m => m.Cast.Contains(c)).Select(m => m.Title).ToList() })
-            .ToList();
-    }
-    
-    private Movie? FindCommonMovie(string fromActor, string toActor) =>
-        _movies.FirstOrDefault(movie =>
-                movie.Cast.Contains(fromActor) &&
-                movie.Cast.Contains(toActor));
-
-    public List<string> FindShortestPath(string fromActor, string toActor)
-    {
-        return FindShortestPath(fromActor, toActor, []);
-    }
-    
-    private List<string> FindShortestPath(string fromActor, string toActor, HashSet<string> visited)
-    {
-        if (fromActor == toActor)
-            return [toActor];
-        
-        Movie? commonMovie = FindCommonMovie(fromActor, toActor);
-        
-        if (commonMovie != null)
-            return [fromActor, commonMovie.Title, toActor];
-        
-        IEnumerable<string> coActors = _movies
-            .Where(m => m.Cast.Contains(fromActor))
-            .SelectMany(m => m.Cast)
-            .Except([fromActor]);
-
-        List<string> shortestPath = [];
-
-        foreach (string coActor in coActors.Except(visited))
+        foreach (MovieData movieData in moviesData.Movies)
         {
-            commonMovie = FindCommonMovie(fromActor, coActor);
-            if (commonMovie is not {} movie)
-                throw new InvalidOperationException();
-                
-            if (visited.Contains(commonMovie.Title))
-                continue;
-                
-            List<string> path = FindShortestPath(coActor, toActor, [fromActor, movie.Title]);
-            
-            if (path.Any() &&
-                (!shortestPath.Any() || path.Count < shortestPath.Count))
+            foreach (string actorName in movieData.Cast)
             {
-                shortestPath = path;
+                // Create distinct Actors objects, one for each unique name
+                _actors.TryAdd(actorName, new Actor(actorName));
+            }
+
+            _movies[movieData.Title] = new Movie(movieData.Title)
+            {
+                Cast = movieData.Cast
+                    .Select(name => _actors[name])
+                    .ToList()
+            };
+        }
+
+        // Add backward references from Actor to Movies
+        foreach (Movie movie in _movies.Values)
+        foreach (Actor actor in movie.Cast)
+        {
+            actor.Movies.Add(movie);
+        }
+    }
+    
+    public IEnumerable<string> GetActors() => _actors.Keys;
+
+    public IEnumerable<IPathItem>? FindShortestPath(string fromActor, string toActor)
+    {
+        _actors.TryGetValue(fromActor, out Actor? from);
+        _actors.TryGetValue(toActor, out Actor? to);
+        
+        if (from is null || to is null)
+            throw new InvalidOperationException("Cannot find actors with given names.");
+        
+        return FindShortestPath(from, to, [], []);
+    }
+    
+    private List<IPathItem>? FindShortestPath(IPathItem from, IPathItem to, List<IPathItem> path, HashSet<IPathItem> visited)
+    {
+        if (!visited.Add(from))
+            return null; // already visited
+
+        path = [..path, from];
+
+        if (from == to)
+            return path;
+
+        List<IPathItem>? shortestPath = null;
+
+        foreach (IPathItem connection in from.Connections)
+        {
+            List<IPathItem>? subPath = FindShortestPath(connection, to, path, visited);
+            
+            if ((subPath?.Count ?? int.MaxValue) < (shortestPath?.Count ?? int.MaxValue)) {
+                shortestPath = subPath;
             }
         }
-        
-        if (shortestPath.Any())
-        {
-            string to = shortestPath.First();
-            Movie? common =  FindCommonMovie(fromActor, to);
-            
-            if (common is not {} movie)
-                throw new InvalidOperationException();
-                            
-            shortestPath.Insert(0, fromActor);
-            shortestPath.Insert(1, movie.Title);
-        }
-        
-        return shortestPath; 
+
+        return shortestPath;
     }
 }
