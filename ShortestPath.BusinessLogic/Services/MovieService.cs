@@ -59,18 +59,18 @@ public class MovieService
         return FindShortestPath(from, to, []);
     }
     
-    private IEnumerable<IPathItem>? FindShortestPath(IPathItem from, IPathItem to, IEnumerable<IPathItem> visited)
+    private List<IPathItem>? FindShortestPath(IPathItem from, IPathItem to, List<IPathItem> visited)
     {
         if (from == to)
-            return visited.Append(to);
+            return [..visited, from];
         
-        IEnumerable<IPathItem>? shortestPath = null;
+        List<IPathItem>? shortestPath = null;
         
         foreach (IPathItem connection in from.Connections.Except(visited))
         {
-            IEnumerable<IPathItem>? path = FindShortestPath(connection, to, visited.Append(from));
+            List<IPathItem>? path = FindShortestPath(connection, to, [..visited, from]);
             
-            if ((path?.Count() ?? int.MaxValue) < (shortestPath?.Count() ?? int.MaxValue))
+            if ((path?.Count ?? int.MaxValue) < (shortestPath?.Count ?? int.MaxValue))
             {
                 shortestPath = path;
             }
