@@ -1,4 +1,4 @@
-﻿using ShortestPath.BusinessLogic.Entities.Interfaces;
+﻿using ShortestPath.BusinessLogic.Models.Entities;
 using ShortestPath.BusinessLogic.Services;
 
 var service = new MovieService();

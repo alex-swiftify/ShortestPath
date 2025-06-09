@@ -1,6 +1,5 @@
 using System.Text.Json;
-using ShortestPath.BusinessLogic.Entities;
-using ShortestPath.BusinessLogic.Entities.Interfaces;
+using ShortestPath.BusinessLogic.Models.Entities;
 
 namespace ShortestPath.BusinessLogic.Services;
 

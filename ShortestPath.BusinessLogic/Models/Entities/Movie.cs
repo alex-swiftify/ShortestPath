@@ -1,6 +1,4 @@
-using ShortestPath.BusinessLogic.Entities.Interfaces;
-
-namespace ShortestPath.BusinessLogic.Entities;
+namespace ShortestPath.BusinessLogic.Models.Entities;
 
 public class Movie(string title) : IPathItem
 {

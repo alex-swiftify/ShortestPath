@@ -1,4 +1,4 @@
-namespace ShortestPath.BusinessLogic.Entities.Interfaces;
+namespace ShortestPath.BusinessLogic.Models.Entities;
 
 public interface IPathItem
 {
