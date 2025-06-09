@@ -56,28 +56,30 @@ public class MovieService
         if (from is null || to is null)
             throw new InvalidOperationException("Cannot find actors with given names.");
         
-        return FindShortestPath(from, to, []);
+        return FindShortestPath(from, to, [], []);
     }
     
-    private List<IPathItem>? FindShortestPath(IPathItem from, IPathItem to, List<IPathItem> visited)
+    private List<IPathItem>? FindShortestPath(IPathItem from, IPathItem to, List<IPathItem> path, HashSet<IPathItem> visited)
     {
-        visited = [..visited, from];
-    
+        if (!visited.Add(from))
+            return null; // already visited
+
+        path = [..path, from];
+
         if (from == to)
-            return visited;
-        
+            return path;
+
         List<IPathItem>? shortestPath = null;
-        
-        foreach (IPathItem connection in from.Connections.Except(visited))
+
+        foreach (IPathItem connection in from.Connections)
         {
-            List<IPathItem>? path = FindShortestPath(connection, to, visited);
+            List<IPathItem>? subPath = FindShortestPath(connection, to, path, visited);
             
-            if ((path?.Count ?? int.MaxValue) < (shortestPath?.Count ?? int.MaxValue))
-            {
-                shortestPath = path;
+            if ((subPath?.Count ?? int.MaxValue) < (shortestPath?.Count ?? int.MaxValue)) {
+                shortestPath = subPath;
             }
         }
-        
+
         return shortestPath;
     }
 }
