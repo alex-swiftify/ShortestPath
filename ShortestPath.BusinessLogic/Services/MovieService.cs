@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Newtonsoft.Json;
+using ShortestPath.BusinessLogic.Models.Dtos;
 using ShortestPath.BusinessLogic.Models.Entities;
 
 namespace ShortestPath.BusinessLogic.Services;
@@ -13,27 +15,22 @@ public class MovieService
         string jsonFilePath = Path.Combine(AppContext.BaseDirectory, "Resources", "movies.json");
         string json = File.ReadAllText(jsonFilePath);
         
-        using var doc = JsonDocument.Parse(json);
-        var root = doc.RootElement;
+        MoviesData moviesData = JsonConvert.DeserializeObject<MoviesData>(json) 
+            ?? throw new InvalidOperationException("Failed to deserialize movies data.");
 
-        var moviesElement = root.GetProperty("movies");
-        
-        foreach (var movieElement in moviesElement.EnumerateArray())
+        foreach (var movieData in moviesData.Movies)
         {
-            string movieTitle = movieElement.GetProperty("title").GetString() ?? string.Empty;
-            
-            IEnumerable<string> cast = movieElement.GetProperty("cast").EnumerateArray()
-                .Select(actorElement => actorElement.GetString() ?? string.Empty);
-
-            foreach (string actorName in cast)
+            foreach (string actorName in movieData.Cast)
             {
                 if (!_actors.ContainsKey(actorName))
                     _actors[actorName] = new Actor(actorName);
             }
-            
-            _movies[movieTitle] = new Movie(movieTitle)
+
+            _movies[movieData.Title] = new Movie(movieData.Title)
             {
-                Cast = cast.Select(name => _actors[name]).ToList()
+                Cast = movieData.Cast
+                    .Select(name => _actors[name])
+                    .ToList()
             };
         }
 
