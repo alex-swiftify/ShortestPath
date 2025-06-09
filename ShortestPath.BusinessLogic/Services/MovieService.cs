@@ -38,9 +38,11 @@ public class MovieService
             };
         }
 
-        foreach (Actor actor in _actors.Values)
+        // Add backward references from Actor to Movies
+        foreach (Movie movie in _movies.Values)
+        foreach (Actor actor in movie.Cast)
         {
-            actor.Movies = _movies.Values.Where(m => m.Cast.Contains(actor)).ToList();
+            actor.Movies.Add(movie);
         }
     }
     
