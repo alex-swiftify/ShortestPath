@@ -1,1 +1,9 @@
-<p>path-finder works!</p>
+<select [(ngModel)]="selectedActor">
+  <option *ngFor="let actor of actors" [value]="actor">{{ actor }}</option>
+</select>
+
+<button (click)="findPath()">Find Path to Tom Cruise</button>
+
+<p *ngIf="path.length > 0">
+  {{ path.join(' => ') }}
+</p>

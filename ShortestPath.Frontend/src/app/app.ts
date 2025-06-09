@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
-import { PathFinder } from './path-finder/path-finder';
+import { PathFinderComponent } from './path-finder/path-finder';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [PathFinder],
+  imports: [PathFinderComponent, FormsModule],
   templateUrl: './app.html',
   styleUrls: ['./app.css']
 })
